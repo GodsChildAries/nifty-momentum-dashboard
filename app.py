@@ -24,11 +24,11 @@ if 'user_watchlist' not in st.session_state:
     safe_defaults = [ticker for ticker in desired_defaults if ticker in all_nifty_tickers]
     st.session_state.user_watchlist = safe_defaults
 
-# Define Segments
+# Define Segments (Free vs Paid)
 indices = {
     "Nifty 50 (1-50)": all_nifty_tickers[:50],
     "Nifty Next 50 (51-100)": all_nifty_tickers[50:100],
-    "Nifty Midcap 150 (101-250)": all_nifty_tickers[100:250],
+    "🔒 Nifty Midcap 150 (101-250) - [PAID]": all_nifty_tickers[100:250],
     "🔒 Nifty Smallcap 250 (251-500) - [PAID]": all_nifty_tickers[250:500],
     "⭐ 🔒 My Custom Watchlist - [PAID]": [] 
 }
@@ -40,15 +40,12 @@ is_paid_tier = "PAID" in selected_index
 access_granted = True
 
 if is_paid_tier:
-    # Set your secret password here (or use st.secrets for production security)
-    SECRET_PASSWORD = "PRO_TRADER_2026" 
+    SECRET_PASSWORD = "PRO_TRADER_2026"  # Change this password to whatever you prefer
     
     entered_password = st.sidebar.text_input("Enter Lifetime Access Password:", type="password")
     
     if entered_password != SECRET_PASSWORD:
         access_granted = False
-        st.warning("🔒 This segment requires a Lifetime Access pass. Purchase it via your link to unlock Smallcaps and Custom Watchlists.")
-        st.info("Free tiers (Nifty 50, Next 50, Midcap 150) remain fully accessible via the dropdown above.")
 
 # Only process data if access is granted
 if access_granted:
@@ -97,8 +94,8 @@ if access_granted:
             sns.heatmap(df_display[['Score']].T, annot=True, fmt="d", cmap=config["cmap"], vmin=0, vmax=100, ax=axes[0], linewidths=0.5)
             axes[0].set_title(f'{view_mode} Score (0-100)', fontsize=14, fontweight='bold')
 
-            axes[1].plot(df_display.index, df_display[config["y_col_1"]], linestyle='None', marker='o', markersize=8, color="#b91c50", label=config["y_col_1"])
-            axes[1].plot(df_display.index, df_display[config["y_col_2"]], linestyle='None', marker='s', markersize=8, color="#8dd767", label=config["y_col_2"])
+            axes[1].plot(df_display.index, df_display[config["y_col_1"]], linestyle='None', marker='o', markersize=8, color='#1f77b4', label=config["y_col_1"])
+            axes[1].plot(df_display.index, df_display[config["y_col_2"]], linestyle='None', marker='s', markersize=8, color='#ff7f0e', label=config["y_col_2"])
             axes[1].axhspan(-config["zone"], config["zone"], color='gray', alpha=0.15)
             axes[1].axhline(0, color='black', linestyle='-', alpha=0.7) 
             axes[1].set_ylabel('% Distance from Average')
@@ -110,3 +107,20 @@ if access_granted:
 
             st.subheader(f"Action Zone: Stocks Pulling Back to Support/Resistance (< {config['zone']}%)")
             st.dataframe(df_segment[df_segment['Action Zone'] != 'No'], width='stretch')
+
+else:
+    # --- LOCKED STATE SCREEN ---
+    razorpay_link = "https://razorpay.me/@arpita5693"  # Replace with your actual Razorpay Payment Page link
+    
+    st.warning("🔒 This segment (Midcap 150, Smallcap 250, & Watchlists) requires a Lifetime Access Pass (₹299).")
+    st.markdown(f"👉 **[Click Here to Pay via UPI / Card (Best for Mobile)]({razorpay_link})**")
+    
+    st.write("---")
+    st.markdown("### 📱 Or Scan & Pay via QR Code (Best for Laptop/Desktop):")
+    
+    try:
+        st.image("razorpay_qr.png", width=250)
+    except FileNotFoundError:
+        st.info("Upload your 'razorpay_qr.png' file to your GitHub repository to display the QR code here.")
+        
+    st.info("💡 **Free Tiers Available:** Nifty 50 and Nifty Next 50 remain completely open and free via the dropdown menu on the sidebar.")
